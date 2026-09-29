@@ -1,0 +1,1 @@
+package com.gestopago.microusuarios.exception; public class UsuarioInactivoException extends RuntimeException { public UsuarioInactivoException(String message) { super(message); } }

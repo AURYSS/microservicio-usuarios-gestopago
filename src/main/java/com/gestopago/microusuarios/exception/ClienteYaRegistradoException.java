@@ -1,0 +1,1 @@
+package com.gestopago.microusuarios.exception; public class ClienteYaRegistradoException extends RuntimeException { public ClienteYaRegistradoException(String message) { super(message); } }
