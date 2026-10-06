@@ -1,0 +1,7 @@
+package com.gestopago.microusuarios.exception;
+
+public class CredencialesInvalidasException extends RuntimeException {
+    public CredencialesInvalidasException(String message) {
+        super(message);
+    }
+}
