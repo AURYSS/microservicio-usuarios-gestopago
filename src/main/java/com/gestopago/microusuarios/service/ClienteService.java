@@ -40,7 +40,7 @@ public class ClienteService {
             throw new RfcDuplicadoException("RFC ya registrado.");
         }
         if (clienteRepository.findByCorreo(cliente.getCorreo()).isPresent()) {
-            throw new ClienteYaRegistradoException("Correo electrónico ya registrado.");
+            throw new CorreoDuplicadoException("Correo electrónico ya registrado.");
         }
         
         // Password validation
@@ -49,7 +49,7 @@ public class ClienteService {
             !plainPassword.matches(".*[a-z].*") || 
             !plainPassword.matches(".*\\d.*") || 
             !plainPassword.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?].*")) {
-            throw new BadRequestException("La contraseña debe tener mínimo 8 caracteres, una mayúscula, una minúscula, un número y un carácter especial.");
+            throw new ContrasenaInvalidaException("La contraseña debe tener mínimo 8 caracteres, una mayúscula, una minúscula, un número y un carácter especial.");
         }
         
         // Ensure relations are set
@@ -81,22 +81,27 @@ public class ClienteService {
     
     public Cliente obtenerPorId(Long id) {
         return clienteRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado con id: " + id));
+            .orElseThrow(() -> new ClienteNoEncontradoException("Cliente no encontrado con id: " + id));
     }
     
     public Cliente obtenerPorCurp(String curp) {
         return clienteRepository.findByCurp(curp)
-            .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado con curp: " + curp));
+            .orElseThrow(() -> new ClienteNoEncontradoException("Cliente no encontrado con curp: " + curp));
     }
     
     public Cliente obtenerPorRfc(String rfc) {
         return clienteRepository.findByRfc(rfc)
-            .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado con rfc: " + rfc));
+            .orElseThrow(() -> new ClienteNoEncontradoException("Cliente no encontrado con rfc: " + rfc));
     }
     
     public Cliente obtenerPorCorreo(String correo) {
         return clienteRepository.findByCorreo(correo)
-            .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado con correo: " + correo));
+            .orElseThrow(() -> new ClienteNoEncontradoException("Cliente no encontrado con correo: " + correo));
+    }
+    
+    public Cliente obtenerPorNumeroCuenta(java.util.UUID numeroCuenta) {
+        return clienteRepository.findByCuentasNumeroCuenta(numeroCuenta)
+            .orElseThrow(() -> new ClienteNoEncontradoException("Cliente no encontrado con número de cuenta: " + numeroCuenta));
     }
     
     public List<Cliente> obtenerActivos() {
