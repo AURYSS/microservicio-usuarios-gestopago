@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 public interface ClienteRepository extends JpaRepository<Cliente, Long> {
     Optional<Cliente> findByCurp(String curp);
@@ -12,4 +13,5 @@ public interface ClienteRepository extends JpaRepository<Cliente, Long> {
     Optional<Cliente> findByCorreo(String correo);
     List<Cliente> findByActivoTrue();
     List<Cliente> findByFechaRegistroBetween(LocalDateTime start, LocalDateTime end);
+    Optional<Cliente> findByCuentasNumeroCuenta(UUID numeroCuenta);
 }

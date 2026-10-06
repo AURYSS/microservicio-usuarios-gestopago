@@ -73,6 +73,12 @@ public class ClienteController {
     }
     
     @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/cuenta/{numeroCuenta}")
+    public ResponseEntity<Cliente> buscarPorNumeroCuenta(@PathVariable java.util.UUID numeroCuenta) {
+        return ResponseEntity.ok(clienteService.obtenerPorNumeroCuenta(numeroCuenta));
+    }
+    
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/activos")
     public ResponseEntity<List<Cliente>> obtenerClientesActivos() {
         return ResponseEntity.ok(clienteService.obtenerActivos());
