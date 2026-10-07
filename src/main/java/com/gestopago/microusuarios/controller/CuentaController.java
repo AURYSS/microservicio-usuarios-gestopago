@@ -47,6 +47,10 @@ public class CuentaController {
             throw new com.gestopago.microusuarios.exception.CuentaInactivaException("Operacion denegada: La cuenta esta inactiva y no puede realizar pagos.");
         }
         
+        if (monto <= 0) {
+            return ResponseEntity.badRequest().body("El monto a pagar debe ser mayor a 0");
+        }
+        
         if (cuenta.getSaldo() < monto) {
             return ResponseEntity.badRequest().body("Saldo insuficiente");
         }
