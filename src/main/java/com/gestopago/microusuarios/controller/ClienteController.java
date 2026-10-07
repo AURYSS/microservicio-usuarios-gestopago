@@ -47,7 +47,7 @@ public class ClienteController {
         return ResponseEntity.ok(clienteService.actualizarCliente(id, clienteActualizado));
     }
     
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('CLIENTE')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> bajaLogicaCliente(@PathVariable Long id) {
         clienteService.bajaLogica(id);
