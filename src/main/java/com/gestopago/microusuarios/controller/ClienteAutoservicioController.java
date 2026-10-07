@@ -60,7 +60,7 @@ public class ClienteAutoservicioController {
     }
 
     // 3. POST - Reconocimiento facial (mock)
-    @PostMapping("/reconocimiento-facial")
+    @PostMapping(value = "/reconocimiento-facial", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Map<String, String>> verificarIdentidad(Authentication authentication, @RequestParam("imagen") MultipartFile imagen) {
         // Aquí iría la lógica de integración con un servicio de IA (ej. AWS Rekognition o similar)
         // Por ahora, simulamos una validación exitosa
