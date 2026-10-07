@@ -101,6 +101,77 @@ El microservicio expone los endpoints protegidos mediante token JWT. Existen pol
 
 ---
 
+## 💾 Script de Base de Datos (DDL)
+Aunque Spring Boot (Hibernate) genera automáticamente las tablas gracias a la propiedad `ddl-auto=update`, aquí se adjunta el script DDL equivalente para la creación manual de la base de datos optimizada:
+
+```sql
+CREATE DATABASE gestopago_usuarios;
+
+\c gestopago_usuarios;
+
+CREATE TABLE clientes (
+    id BIGSERIAL PRIMARY KEY,
+    nombre VARCHAR(50) NOT NULL,
+    segundo_nombre VARCHAR(50),
+    apellido_paterno VARCHAR(50) NOT NULL,
+    apellido_materno VARCHAR(50) NOT NULL,
+    fecha_nacimiento DATE NOT NULL,
+    curp VARCHAR(18) UNIQUE NOT NULL,
+    rfc VARCHAR(13) UNIQUE NOT NULL,
+    sexo VARCHAR(20),
+    nacionalidad VARCHAR(50),
+    estado_civil VARCHAR(50),
+    correo VARCHAR(100) UNIQUE NOT NULL,
+    telefono_movil VARCHAR(10) NOT NULL,
+    telefono_alternativo VARCHAR(10),
+    ocupacion VARCHAR(100),
+    empresa VARCHAR(100),
+    ingreso_mensual NUMERIC(15,2) CHECK (ingreso_mensual > 0),
+    activo BOOLEAN DEFAULT TRUE,
+    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE domicilios (
+    id BIGSERIAL PRIMARY KEY,
+    calle VARCHAR(100) NOT NULL,
+    numero_exterior VARCHAR(20) NOT NULL,
+    numero_interior VARCHAR(20),
+    colonia VARCHAR(100) NOT NULL,
+    municipio VARCHAR(100) NOT NULL,
+    estado VARCHAR(100) NOT NULL,
+    codigo_postal VARCHAR(5) NOT NULL,
+    pais VARCHAR(50) NOT NULL,
+    cliente_id BIGINT UNIQUE REFERENCES clientes(id)
+);
+
+CREATE TABLE cuentas (
+    id BIGSERIAL PRIMARY KEY,
+    numero_cuenta UUID UNIQUE NOT NULL,
+    saldo NUMERIC(15,2) NOT NULL CHECK (saldo >= 0),
+    activa BOOLEAN DEFAULT TRUE,
+    cliente_id BIGINT REFERENCES clientes(id)
+);
+
+CREATE TABLE usuarios (
+    id BIGSERIAL PRIMARY KEY,
+    correo VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    role VARCHAR(20) NOT NULL,
+    activo BOOLEAN DEFAULT TRUE,
+    cliente_id BIGINT UNIQUE REFERENCES clientes(id),
+    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Índices para optimización de consultas frecuentes
+CREATE INDEX idx_cliente_curp ON clientes(curp);
+CREATE INDEX idx_cliente_rfc ON clientes(rfc);
+CREATE INDEX idx_cuenta_numero ON cuentas(numero_cuenta);
+```
+
+---
+
 ## 🛠️ Instrucciones de Ejecución y Pruebas
 1. Ejecutar el proyecto: `./mvnw spring-boot:run`
 2. Abrir **Swagger OpenAPI**: `http://localhost:8080/swagger-ui/index.html`
