@@ -11,6 +11,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/cuentas")
+@org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
 public class CuentaController {
 
     private final CuentaRepository cuentaRepository;
