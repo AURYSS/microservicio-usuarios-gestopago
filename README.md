@@ -86,8 +86,18 @@ El microservicio expone los endpoints protegidos mediante token JWT. Existen pol
 ### Clientes (Autoservicio y Gestión)
 * `POST /api/clientes`: (Abierto) Registra un nuevo cliente (crea su cuenta y usuario automáticamente).
 * `GET /api/me/perfil`: (`CLIENTE`) Extrae del Token JWT la identidad del usuario y retorna sus datos protegidos.
-* `POST /api/me/reconocimiento-facial`: (`CLIENTE`) Endpoint de innovación con `MultipartFile` para simulación de verificación de identidad.
-* `DELETE /api/clientes/{id}`: (`ADMIN`, `CLIENTE`) Realiza la **baja lógica** del cliente y desactiva su usuario y cuentas.
+* `DELETE /api/clientes/{id}`: (`ADMIN`) Realiza la **baja lógica** del cliente y desactiva su usuario y cuentas (protección contra manipulación de IDOR).
+
+### 4. Manejo Global de Excepciones y Protección IDOR
+* **Manejo Centralizado de Excepciones (`GlobalExceptionHandler`):** Captura todas las excepciones de negocio y seguridad devolviendo estructuras consistentes en formato JSON con los códigos de estado HTTP pertinentes (400, 401, 403, 404, 409).
+* **Validación Global de DTOs (`ValidadorCampos`):** Utiliza `@ControllerAdvice` para interceptar `MethodArgumentNotValidException`, iterando sobre la colección `Errors` / `FieldError` y construyendo un objeto estandarizado `GenericResponse` con `codigo: 1` y el desglose de los campos inválidos.
+* **Prevención de IDOR (Insecure Direct Object Reference):** Se restringieron los endpoints sensibles que reciben `@PathVariable` (tales como la baja lógica y la administración de cuentas bancarias) exclusivamente al rol `ADMIN` mediante `@PreAuthorize`. Para los usuarios finales (`CLIENTE`), el acceso a sus recursos se resuelve directamente a partir de la identidad autenticada en el token JWT (`/api/me/perfil`).
+
+---
+
+## 🌐 Despliegue en la Nube (Render)
+El servicio se encuentra completamente desplegado y operativo en la nube:
+* **Swagger UI en Producción:** [https://gestopago-api-6l9t.onrender.com/swagger-ui/index.html](https://gestopago-api-6l9t.onrender.com/swagger-ui/index.html)
 
 ### Consultas Administrativas (Solo `ADMIN`)
 * `GET /api/clientes`: Lista todos los clientes.
