@@ -100,14 +100,20 @@ El servicio se encuentra completamente desplegado y operativo en la nube:
 * **Swagger UI en Producción:** [https://gestopago-api-6l9t.onrender.com/swagger-ui/index.html](https://gestopago-api-6l9t.onrender.com/swagger-ui/index.html)
 
 ### Consultas Administrativas (Solo `ADMIN`)
-* `GET /api/clientes`: Lista todos los clientes.
+* `GET /api/clientes?id=`: Lista todos los clientes o busca por ID si se envía el parámetro.
+* `GET /api/clientes/id?id=`: Consulta cliente por ID validando parámetro obligatorio con `Optional`.
+* `PUT /api/clientes?id=`: Actualiza los datos del cliente por ID.
+* `DELETE /api/clientes?id=`: Realiza la baja lógica del cliente por ID.
 * `GET /api/clientes/activos`: Lista solo clientes dados de alta.
-* `GET /api/clientes/correo/{correo}` / `rfc/{rfc}`: Búsquedas indexadas específicas.
+* `GET /api/clientes/correo?correo=` / `rfc?rfc=` / `curp?curp=`: Búsquedas específicas por parámetro en la petición con `Optional`.
+* `GET /api/clientes/cuenta?numeroCuenta=`: Busca cliente por número de cuenta asociado.
 
-### Transacciones Financieras (Cuentas)
-* `POST /api/cuentas/{numero}/recargar`: Abona dinero validando montos > 0 y estatus de cuenta.
-* `POST /api/cuentas/{numero}/pagar`: Resta dinero validando montos > 0, fondos suficientes y estatus.
-* `GET /api/cuentas/{numero}/historial`: Consulta el historial financiero.
+### Transacciones Financieras (Cuentas - Solo `ADMIN`)
+* `GET /api/cuentas?numeroCuenta=`: Consulta información de la cuenta por número de cuenta.
+* `GET /api/cuentas/saldo?numeroCuenta=`: Consulta el saldo disponible de una cuenta.
+* `POST /api/cuentas/recargar?numeroCuenta=&monto=`: Abona dinero validando montos > 0 y estatus de cuenta.
+* `POST /api/cuentas/pagar?numeroCuenta=&monto=`: Resta dinero validando montos > 0, fondos suficientes y estatus.
+* `GET /api/cuentas/historial?numeroCuenta=`: Consulta el historial financiero.
 
 ---
 

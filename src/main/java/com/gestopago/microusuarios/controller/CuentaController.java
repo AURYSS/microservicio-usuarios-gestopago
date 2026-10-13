@@ -1,6 +1,7 @@
 package com.gestopago.microusuarios.controller;
 
 import com.gestopago.microusuarios.entity.Cuenta;
+import com.gestopago.microusuarios.exception.BadRequestException;
 import com.gestopago.microusuarios.service.CuentaService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -8,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @RestController
@@ -21,9 +23,12 @@ public class CuentaController {
         this.cuentaService = cuentaService;
     }
 
-    @GetMapping("/{numeroCuenta}")
-    public ResponseEntity<Cuenta> obtenerCuenta(@PathVariable UUID numeroCuenta) {
-        return ResponseEntity.ok(cuentaService.obtenerCuenta(numeroCuenta));
+    @GetMapping
+    public ResponseEntity<Cuenta> obtenerCuenta(@RequestParam(required = false) Optional<UUID> numeroCuenta) {
+        if (numeroCuenta == null || numeroCuenta.isEmpty()) {
+            throw new BadRequestException("El parámetro 'numeroCuenta' es requerido en la petición.");
+        }
+        return ResponseEntity.ok(cuentaService.obtenerCuenta(numeroCuenta.get()));
     }
     
     @GetMapping("/activas")
@@ -31,23 +36,45 @@ public class CuentaController {
         return ResponseEntity.ok(cuentaService.obtenerCuentasActivas());
     }
     
-    @GetMapping("/{numeroCuenta}/saldo")
-    public ResponseEntity<Double> obtenerSaldo(@PathVariable UUID numeroCuenta) {
-        return ResponseEntity.ok(cuentaService.obtenerSaldo(numeroCuenta));
+    @GetMapping("/saldo")
+    public ResponseEntity<Double> obtenerSaldo(@RequestParam(required = false) Optional<UUID> numeroCuenta) {
+        if (numeroCuenta == null || numeroCuenta.isEmpty()) {
+            throw new BadRequestException("El parámetro 'numeroCuenta' es requerido en la petición.");
+        }
+        return ResponseEntity.ok(cuentaService.obtenerSaldo(numeroCuenta.get()));
     }
 
-    @PostMapping("/{numeroCuenta}/pagar")
-    public ResponseEntity<Map<String, Object>> pagar(@PathVariable UUID numeroCuenta, @RequestParam Double monto) {
-        return ResponseEntity.ok(cuentaService.pagar(numeroCuenta, monto));
+    @PostMapping("/pagar")
+    public ResponseEntity<Map<String, Object>> pagar(
+            @RequestParam(required = false) Optional<UUID> numeroCuenta,
+            @RequestParam(required = false) Optional<Double> monto) {
+        if (numeroCuenta == null || numeroCuenta.isEmpty()) {
+            throw new BadRequestException("El parámetro 'numeroCuenta' es requerido en la petición.");
+        }
+        if (monto == null || monto.isEmpty()) {
+            throw new BadRequestException("El parámetro 'monto' es requerido en la petición.");
+        }
+        return ResponseEntity.ok(cuentaService.pagar(numeroCuenta.get(), monto.get()));
     }
 
-    @PostMapping("/{numeroCuenta}/recargar")
-    public ResponseEntity<Map<String, Object>> recargar(@PathVariable UUID numeroCuenta, @RequestParam Double monto) {
-        return ResponseEntity.ok(cuentaService.recargar(numeroCuenta, monto));
+    @PostMapping("/recargar")
+    public ResponseEntity<Map<String, Object>> recargar(
+            @RequestParam(required = false) Optional<UUID> numeroCuenta,
+            @RequestParam(required = false) Optional<Double> monto) {
+        if (numeroCuenta == null || numeroCuenta.isEmpty()) {
+            throw new BadRequestException("El parámetro 'numeroCuenta' es requerido en la petición.");
+        }
+        if (monto == null || monto.isEmpty()) {
+            throw new BadRequestException("El parámetro 'monto' es requerido en la petición.");
+        }
+        return ResponseEntity.ok(cuentaService.recargar(numeroCuenta.get(), monto.get()));
     }
 
-    @GetMapping("/{numeroCuenta}/historial")
-    public ResponseEntity<Map<String, Object>> obtenerHistorial(@PathVariable UUID numeroCuenta) {
-        return ResponseEntity.ok(cuentaService.obtenerHistorial(numeroCuenta));
+    @GetMapping("/historial")
+    public ResponseEntity<Map<String, Object>> obtenerHistorial(@RequestParam(required = false) Optional<UUID> numeroCuenta) {
+        if (numeroCuenta == null || numeroCuenta.isEmpty()) {
+            throw new BadRequestException("El parámetro 'numeroCuenta' es requerido en la petición.");
+        }
+        return ResponseEntity.ok(cuentaService.obtenerHistorial(numeroCuenta.get()));
     }
 }
