@@ -43,6 +43,10 @@ public class ClienteService {
             throw new CorreoDuplicadoException("Correo electrónico ya registrado.");
         }
         
+        if (cliente.getIngresoMensual() != null && cliente.getIngresoMensual() <= 0) {
+            throw new BadRequestException("El ingreso mensual debe ser mayor a cero.");
+        }
+        
         // Password validation
         if (plainPassword == null || plainPassword.length() < 8 || 
             !plainPassword.matches(".*[A-Z].*") || 
@@ -116,6 +120,32 @@ public class ClienteService {
     public Cliente actualizarCliente(Long id, Cliente datosActualizados) {
         Cliente cliente = obtenerPorId(id);
         
+        if (!Boolean.TRUE.equals(cliente.getActivo())) {
+            throw new BadRequestException("Operación denegada: No se puede modificar la información de un cliente inactivo.");
+        }
+
+        // Regla de Negocio: No permitir modificar CURP ni RFC
+        if (datosActualizados.getCurp() != null && !datosActualizados.getCurp().trim().equalsIgnoreCase(cliente.getCurp())) {
+            throw new BadRequestException("Regla de negocio: No está permitido modificar la CURP.");
+        }
+        if (datosActualizados.getRfc() != null && !datosActualizados.getRfc().trim().equalsIgnoreCase(cliente.getRfc())) {
+            throw new BadRequestException("Regla de negocio: No está permitido modificar el RFC.");
+        }
+
+        // Regla de Negocio: Ingreso mensual debe ser mayor a cero
+        if (datosActualizados.getIngresoMensual() != null && datosActualizados.getIngresoMensual() <= 0) {
+            throw new BadRequestException("El ingreso mensual debe ser mayor a cero.");
+        }
+
+        // Regla de Negocio: Teléfono debe contener exactamente 10 dígitos
+        if (datosActualizados.getTelefonoMovil() != null && !datosActualizados.getTelefonoMovil().matches("^\\d{10}$")) {
+            throw new BadRequestException("El teléfono móvil debe contener exactamente 10 dígitos.");
+        }
+        if (datosActualizados.getTelefonoAlternativo() != null && !datosActualizados.getTelefonoAlternativo().isBlank() 
+            && !datosActualizados.getTelefonoAlternativo().matches("^\\d{10}$")) {
+            throw new BadRequestException("El teléfono alternativo debe contener exactamente 10 dígitos.");
+        }
+        
         cliente.setNombre(datosActualizados.getNombre());
         cliente.setSegundoNombre(datosActualizados.getSegundoNombre());
         cliente.setApellidoPaterno(datosActualizados.getApellidoPaterno());
@@ -144,8 +174,6 @@ public class ClienteService {
             dom.setEstado(datosActualizados.getDomicilio().getEstado());
             dom.setPais(datosActualizados.getDomicilio().getPais());
         }
-        
-        // Note: CURP, RFC, Correo, Cuenta are not updated
         
         return clienteRepository.save(cliente);
     }
