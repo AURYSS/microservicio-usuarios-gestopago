@@ -193,4 +193,99 @@ public class ClienteService {
         
         clienteRepository.save(cliente);
     }
+
+    @Transactional
+    public com.gestopago.microusuarios.dto.ClienteResponse crearClienteDTO(com.gestopago.microusuarios.dto.ClienteRegistroRequest request) {
+        Cliente cliente = crearCliente(request.getCliente(), request.getPassword());
+        return mapToResponse(cliente);
+    }
+
+    @Transactional
+    public com.gestopago.microusuarios.dto.ClienteResponse actualizarClienteDTO(com.gestopago.microusuarios.dto.ClienteUpdateRequest request) {
+        Cliente cliente = obtenerPorId(request.getId());
+
+        if (!Boolean.TRUE.equals(cliente.getActivo())) {
+            throw new BadRequestException("Operación denegada: No se puede modificar la información de un cliente inactivo.");
+        }
+
+        if (request.getNombre() != null && !request.getNombre().isBlank()) cliente.setNombre(request.getNombre());
+        if (request.getSegundoNombre() != null) cliente.setSegundoNombre(request.getSegundoNombre());
+        if (request.getApellidoPaterno() != null && !request.getApellidoPaterno().isBlank()) cliente.setApellidoPaterno(request.getApellidoPaterno());
+        if (request.getApellidoMaterno() != null && !request.getApellidoMaterno().isBlank()) cliente.setApellidoMaterno(request.getApellidoMaterno());
+        if (request.getSexo() != null) cliente.setSexo(request.getSexo());
+        if (request.getNacionalidad() != null) cliente.setNacionalidad(request.getNacionalidad());
+        if (request.getEstadoCivil() != null) cliente.setEstadoCivil(request.getEstadoCivil());
+        if (request.getTelefonoMovil() != null && !request.getTelefonoMovil().isBlank()) cliente.setTelefonoMovil(request.getTelefonoMovil());
+        if (request.getTelefonoAlternativo() != null) cliente.setTelefonoAlternativo(request.getTelefonoAlternativo());
+        if (request.getOcupacion() != null) cliente.setOcupacion(request.getOcupacion());
+        if (request.getEmpresa() != null) cliente.setEmpresa(request.getEmpresa());
+        if (request.getIngresoMensual() != null) cliente.setIngresoMensual(request.getIngresoMensual());
+
+        if (request.getDomicilio() != null) {
+            Domicilio dom = cliente.getDomicilio();
+            if (dom == null) {
+                dom = new Domicilio();
+                cliente.setDomicilio(dom);
+            }
+            if (request.getDomicilio().getCalle() != null) dom.setCalle(request.getDomicilio().getCalle());
+            if (request.getDomicilio().getNumeroExterior() != null) dom.setNumeroExterior(request.getDomicilio().getNumeroExterior());
+            if (request.getDomicilio().getNumeroInterior() != null) dom.setNumeroInterior(request.getDomicilio().getNumeroInterior());
+            if (request.getDomicilio().getColonia() != null) dom.setColonia(request.getDomicilio().getColonia());
+            if (request.getDomicilio().getCodigoPostal() != null) dom.setCodigoPostal(request.getDomicilio().getCodigoPostal());
+            if (request.getDomicilio().getMunicipio() != null) dom.setMunicipio(request.getDomicilio().getMunicipio());
+            if (request.getDomicilio().getEstado() != null) dom.setEstado(request.getDomicilio().getEstado());
+            if (request.getDomicilio().getPais() != null) dom.setPais(request.getDomicilio().getPais());
+        }
+
+        Cliente guardado = clienteRepository.save(cliente);
+        return mapToResponse(guardado);
+    }
+
+    @Transactional
+    public void bajaLogicaDTO(com.gestopago.microusuarios.dto.ClienteDeleteRequest request) {
+        bajaLogica(request.getId());
+    }
+
+    @Transactional(readOnly = true)
+    public List<com.gestopago.microusuarios.dto.ClienteResponse> buscarClientes(com.gestopago.microusuarios.dto.ClienteFiltroRequest filtro) {
+        org.springframework.data.jpa.domain.Specification<Cliente> spec = com.gestopago.microusuarios.repository.ClienteSpecifications.conFiltros(filtro);
+        return clienteRepository.findAll(spec).stream()
+                .map(this::mapToResponse)
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    public com.gestopago.microusuarios.dto.ClienteResponse mapToResponse(Cliente cliente) {
+        List<com.gestopago.microusuarios.dto.CuentaResponse> cuentasResponse = cliente.getCuentas().stream()
+                .map(c -> com.gestopago.microusuarios.dto.CuentaResponse.builder()
+                        .id(c.getId())
+                        .numeroCuenta(c.getNumeroCuenta())
+                        .saldo(c.getSaldo())
+                        .activa(c.getActiva())
+                        .build())
+                .collect(java.util.stream.Collectors.toList());
+
+        return com.gestopago.microusuarios.dto.ClienteResponse.builder()
+                .id(cliente.getId())
+                .nombre(cliente.getNombre())
+                .segundoNombre(cliente.getSegundoNombre())
+                .apellidoPaterno(cliente.getApellidoPaterno())
+                .apellidoMaterno(cliente.getApellidoMaterno())
+                .fechaNacimiento(cliente.getFechaNacimiento())
+                .curp(cliente.getCurp())
+                .rfc(cliente.getRfc())
+                .sexo(cliente.getSexo())
+                .nacionalidad(cliente.getNacionalidad())
+                .estadoCivil(cliente.getEstadoCivil())
+                .correo(cliente.getCorreo())
+                .telefonoMovil(cliente.getTelefonoMovil())
+                .telefonoAlternativo(cliente.getTelefonoAlternativo())
+                .ocupacion(cliente.getOcupacion())
+                .empresa(cliente.getEmpresa())
+                .ingresoMensual(cliente.getIngresoMensual())
+                .activo(cliente.getActivo())
+                .fechaRegistro(cliente.getFechaRegistro())
+                .domicilio(cliente.getDomicilio())
+                .cuentas(cuentasResponse)
+                .build();
+    }
 }
