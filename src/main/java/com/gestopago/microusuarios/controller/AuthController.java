@@ -25,7 +25,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<JwtResponse> authenticateAndGetToken(@RequestBody LoginRequest request) {
+    public ResponseEntity<JwtResponse> authenticateAndGetToken(@jakarta.validation.Valid @RequestBody LoginRequest request) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
         );
