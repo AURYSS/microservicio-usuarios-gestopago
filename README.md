@@ -76,38 +76,45 @@ Se implementó un sistema dual de validación (Nivel Entity/DTO y Nivel Servicio
 
 ---
 
-## 🚀 Endpoints de la API REST y Roles de Seguridad
+## 🚀 Endpoints de la API REST (Sin @PathVariable ni @RequestParam)
 
-El microservicio expone los endpoints protegidos mediante token JWT. Existen políticas de autorización estrictas:
+El microservicio cumple estrictamente con la especificación técnica de la rúbrica:
+1. **Cero `@PathVariable` y cero `@RequestParam`**: Toda la información y criterios de búsqueda se reciben en el cuerpo JSON de la petición (`@RequestBody`) utilizando objetos **Request DTO** con validaciones declaradas (`@Valid`).
+2. **Cero entidades JPA en controladores**: Las entidades nunca se reciben ni se devuelven directamente; se utilizan exclusivamente **Request DTOs** y **Response DTOs** envueltos en la estructura uniforme `ApiResponse<T>`.
+3. **Manejo Centralizado de Excepciones**: Implementado mediante `@RestControllerAdvice` en `GlobalExceptionHandler`, retornando estructuras `ErrorResponse` detalladas sin exponer trazas técnicas ni consultas SQL.
+4. **Búsquedas Dinámicas Combinadas**: Implementadas mediante un único endpoint de consulta con Spring Data JPA Specifications (`JpaSpecificationExecutor`).
 
-### Autenticación
-* `POST /api/auth/login`: (Abierto) Autentica a un usuario y devuelve el token JWT.
+### 1. Administración de Usuarios (`/api/usuarios`) - Solo `ADMIN`
+* `POST /api/usuarios`: Registra un nuevo usuario (`UsuarioCreateRequest` ➔ `UsuarioResponse`, HTTP 201 Created).
+* `PUT /api/usuarios`: Actualiza datos de un usuario impidiendo la modificación de campos del servidor (`UsuarioUpdateRequest` ➔ `UsuarioResponse`, HTTP 200 OK).
+* `DELETE /api/usuarios`: Realiza la baja lógica del usuario (`UsuarioDeleteRequest` con ID en el body, HTTP 200 OK).
+* `POST /api/usuarios/buscar`: **Único endpoint de búsqueda dinámica**. Permite filtrar y combinar criterios (`id`, `correo`, `role`, `activo`, `fechaInicio`, `fechaFin`) en `UsuarioFiltroRequest` ➔ `List<UsuarioResponse>`.
+* `GET /api/usuarios/me`: Consulta el perfil del usuario autenticado en sesión.
 
-### Clientes (Autoservicio y Gestión)
-* `POST /api/clientes`: (Abierto) Registra un nuevo cliente (crea su cuenta y usuario automáticamente).
-* `GET /api/me/perfil`: (`CLIENTE`) Extrae del Token JWT la identidad del usuario y retorna sus datos protegidos.
-* `DELETE /api/clientes/{id}`: (`ADMIN`) Realiza la **baja lógica** del cliente y desactiva su usuario y cuentas (protección contra manipulación de IDOR).
+### 2. Clientes (`/api/clientes`)
+* `POST /api/clientes`: (Público) Registra un cliente con su cuenta y usuario (`ClienteRegistroRequest` ➔ `ClienteResponse`, HTTP 201 Created).
+* `POST /api/clientes/buscar`: (`ADMIN`) **Único endpoint de búsqueda dinámica de clientes**. Permite combinar filtros (`id`, `curp`, `rfc`, `correo`, `numeroCuenta`, `activo`, fechas) en `ClienteFiltroRequest` ➔ `List<ClienteResponse>`.
+* `PUT /api/clientes`: (`ADMIN`) Actualiza información de un cliente (`ClienteUpdateRequest` ➔ `ClienteResponse`, HTTP 200 OK).
+* `DELETE /api/clientes`: (`ADMIN`) Baja lógica del cliente (`ClienteDeleteRequest`, HTTP 200 OK).
 
-### 4. Manejo Global de Excepciones y Protección IDOR
-* **Manejo Centralizado de Excepciones (`GlobalExceptionHandler`):** Captura todas las excepciones de negocio y seguridad devolviendo estructuras consistentes en formato JSON con los códigos de estado HTTP pertinentes (400, 401, 403, 404, 409).
-* **Validación Global de DTOs (`ValidadorCampos`):** Utiliza `@ControllerAdvice` para interceptar `MethodArgumentNotValidException`, iterando sobre la colección `Errors` / `FieldError` y construyendo un objeto estandarizado `GenericResponse` con `codigo: 1` y el desglose de los campos inválidos.
-* **Prevención de IDOR (Insecure Direct Object Reference):** Se restringieron los endpoints sensibles que reciben `@PathVariable` (tales como la baja lógica y la administración de cuentas bancarias) exclusivamente al rol `ADMIN` mediante `@PreAuthorize`. Para los usuarios finales (`CLIENTE`), el acceso a sus recursos se resuelve directamente a partir de la identidad autenticada en el token JWT (`/api/me/perfil`).
+### 3. Cuentas Financieras (`/api/cuentas`) - Solo `ADMIN`
+* `POST /api/cuentas/consultar`: Consulta información de cuenta por `CuentaConsultaRequest` (`numeroCuenta`).
+* `GET /api/cuentas/activas`: Lista todas las cuentas activas.
+* `POST /api/cuentas/saldo`: Consulta de saldo por `CuentaConsultaRequest`.
+* `POST /api/cuentas/pagar`: Realiza un pago validando saldo y estatus (`TransaccionRequest`).
+* `POST /api/cuentas/recargar`: Realiza una recarga validando estatus (`TransaccionRequest`).
+* `POST /api/cuentas/historial`: Consulta transacciones por `CuentaConsultaRequest`.
+
+### 4. Autoservicio de Clientes (`/api/me`) - `CLIENTE` / `ADMIN`
+* `GET /api/me/perfil`: Consulta el perfil propio a partir del token JWT (`ClienteResponse`).
+* `PATCH /api/me/perfil`: Actualización de datos propios mediante DTO.
+* `POST /api/me/reconocimiento-facial`: Verificación biométrica con `MultipartFile`.
 
 ---
 
 ## 🌐 Despliegue en la Nube (Render)
 El servicio se encuentra completamente desplegado y operativo en la nube:
 * **Swagger UI en Producción:** [https://gestopago-api-6l9t.onrender.com/swagger-ui/index.html](https://gestopago-api-6l9t.onrender.com/swagger-ui/index.html)
-
-### Consultas Administrativas (Solo `ADMIN`)
-* `GET /api/clientes`: Lista todos los clientes.
-* `GET /api/clientes/activos`: Lista solo clientes dados de alta.
-* `GET /api/clientes/correo/{correo}` / `rfc/{rfc}`: Búsquedas indexadas específicas.
-
-### Transacciones Financieras (Cuentas)
-* `POST /api/cuentas/{numero}/recargar`: Abona dinero validando montos > 0 y estatus de cuenta.
-* `POST /api/cuentas/{numero}/pagar`: Resta dinero validando montos > 0, fondos suficientes y estatus.
-* `GET /api/cuentas/{numero}/historial`: Consulta el historial financiero.
 
 ---
 

@@ -1,15 +1,20 @@
 package com.gestopago.microusuarios.controller;
 
+import com.gestopago.microusuarios.dto.ApiResponse;
+import com.gestopago.microusuarios.dto.ClienteResponse;
+import com.gestopago.microusuarios.dto.ClienteUpdateRequest;
 import com.gestopago.microusuarios.entity.Cliente;
 import com.gestopago.microusuarios.entity.Usuario;
+import com.gestopago.microusuarios.exception.BadRequestException;
+import com.gestopago.microusuarios.exception.ResourceNotFoundException;
 import com.gestopago.microusuarios.repository.UsuarioRepository;
 import com.gestopago.microusuarios.service.ClienteService;
-import com.gestopago.microusuarios.exception.ResourceNotFoundException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.util.Map;
 
 @RestController
@@ -28,52 +33,44 @@ public class ClienteAutoservicioController {
     private Cliente getAuthenticatedCliente(Authentication authentication) {
         String correo = authentication.getName();
         Usuario usuario = usuarioRepository.findByCorreo(correo)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con correo: " + correo));
         if (usuario.getCliente() == null) {
             throw new ResourceNotFoundException("El usuario no tiene un cliente asociado");
         }
         return usuario.getCliente();
     }
 
-    // 1. GET - Obtener mi perfil
+    // 1. GET - Obtener mi perfil (Response DTO)
     @GetMapping("/perfil")
-    public ResponseEntity<Cliente> obtenerMiPerfil(Authentication authentication) {
-        return ResponseEntity.ok(getAuthenticatedCliente(authentication));
+    public ResponseEntity<ApiResponse<ClienteResponse>> obtenerMiPerfil(Authentication authentication) {
+        Cliente cliente = getAuthenticatedCliente(authentication);
+        ClienteResponse response = clienteService.mapToResponse(cliente);
+        return ResponseEntity.ok(ApiResponse.exito("Perfil recuperado exitosamente", response));
     }
 
-    // 2. PATCH - Actualizar mi perfil parcialmente (ej. solo el teléfono)
+    // 2. PATCH - Actualizar mi perfil parcialmente mediante DTO
     @PatchMapping("/perfil")
-    public ResponseEntity<Cliente> actualizarMiPerfil(Authentication authentication, @RequestBody Map<String, Object> updates) {
+    public ResponseEntity<ApiResponse<ClienteResponse>> actualizarMiPerfil(Authentication authentication, @RequestBody ClienteUpdateRequest updates) {
         Cliente cliente = getAuthenticatedCliente(authentication);
-        
-        // Simulación simple de actualización parcial
-        if (updates.containsKey("telefonoMovil")) {
-            cliente.setTelefonoMovil(updates.get("telefonoMovil").toString());
-        }
-        if (updates.containsKey("telefonoAlternativo")) {
-            cliente.setTelefonoAlternativo(updates.get("telefonoAlternativo").toString());
-        }
-        
-        // Se usaría el servicio para guardar y validar
-        Cliente actualizado = clienteService.actualizarCliente(cliente.getId(), cliente);
-        return ResponseEntity.ok(actualizado);
+        updates.setId(cliente.getId());
+        ClienteResponse response = clienteService.actualizarClienteDTO(updates);
+        return ResponseEntity.ok(ApiResponse.exito("Perfil actualizado exitosamente", response));
     }
 
-    // 3. POST - Reconocimiento facial (mock)
+    // 3. POST - Reconocimiento facial (mock innovación)
     @PostMapping(value = "/reconocimiento-facial", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<Map<String, String>> verificarIdentidad(Authentication authentication, @RequestParam("imagen") MultipartFile imagen) {
-        // Aquí iría la lógica de integración con un servicio de IA (ej. AWS Rekognition o similar)
-        // Por ahora, simulamos una validación exitosa
+    public ResponseEntity<ApiResponse<Map<String, String>>> verificarIdentidad(Authentication authentication, @RequestPart("imagen") MultipartFile imagen) {
         Cliente cliente = getAuthenticatedCliente(authentication);
         
-        if (imagen.isEmpty()) {
-            return ResponseEntity.badRequest().body(Map.of("error", "La imagen es requerida"));
+        if (imagen == null || imagen.isEmpty()) {
+            throw new BadRequestException("El archivo de imagen es obligatorio para la verificación facial.");
         }
         
-        return ResponseEntity.ok(Map.of(
+        Map<String, String> data = Map.of(
             "status", "success",
             "mensaje", "Reconocimiento facial exitoso para el cliente: " + cliente.getNombre(),
             "confianza", "98.5%"
-        ));
+        );
+        return ResponseEntity.ok(ApiResponse.exito("Verificación facial completada", data));
     }
 }
