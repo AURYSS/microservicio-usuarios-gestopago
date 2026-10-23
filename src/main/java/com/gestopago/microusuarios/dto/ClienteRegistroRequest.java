@@ -12,4 +12,6 @@ public class ClienteRegistroRequest {
     
     @NotBlank
     private String password;
+
+    private String pinAutorizacion;
 }
