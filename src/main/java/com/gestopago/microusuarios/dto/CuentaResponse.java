@@ -12,4 +12,5 @@ public class CuentaResponse {
     private UUID numeroCuenta;
     private Double saldo;
     private Boolean activa;
+    private String pinAutorizacion;
 }
