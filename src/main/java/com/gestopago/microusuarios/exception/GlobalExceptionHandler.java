@@ -102,11 +102,17 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
     }
 
-    @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<ErrorResponse> handleBadCredentials(BadCredentialsException ex) {
+    @ExceptionHandler({
+        BadCredentialsException.class,
+        CredencialesInvalidasException.class
+    })
+    public ResponseEntity<ErrorResponse> handleBadCredentials(RuntimeException ex) {
+        String msg = ex instanceof CredencialesInvalidasException
+                ? ex.getMessage()
+                : "Credenciales de autenticación inválidas.";
         ErrorResponse response = ErrorResponse.builder()
                 .exito(false)
-                .mensaje("Credenciales de autenticación inválidas.")
+                .mensaje(msg)
                 .codigoEstado(HttpStatus.UNAUTHORIZED.value())
                 .timestamp(LocalDateTime.now())
                 .build();

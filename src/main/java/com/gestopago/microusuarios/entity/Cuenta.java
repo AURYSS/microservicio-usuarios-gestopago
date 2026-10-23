@@ -22,6 +22,10 @@ public class Cuenta {
     @Builder.Default
     private Boolean activa = true;
     
+    @Builder.Default
+    @Column(name = "pin_autorizacion")
+    private String pinAutorizacion = "1234";
+    
     @ManyToOne
     @JoinColumn(name = "cliente_id")
     @JsonIgnoreProperties({"cuentas", "usuario", "domicilio"})
@@ -34,6 +38,9 @@ public class Cuenta {
         }
         if (saldo == null) {
             saldo = 0.0;
+        }
+        if (pinAutorizacion == null || pinAutorizacion.isBlank()) {
+            pinAutorizacion = "1234";
         }
     }
 }

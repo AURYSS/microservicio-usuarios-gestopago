@@ -29,6 +29,11 @@ public class ClienteService {
 
     @Transactional
     public Cliente crearCliente(Cliente cliente, String plainPassword) {
+        return crearCliente(cliente, plainPassword, "1234");
+    }
+
+    @Transactional
+    public Cliente crearCliente(Cliente cliente, String plainPassword, String pinAutorizacion) {
         if (Period.between(cliente.getFechaNacimiento(), LocalDate.now()).getYears() < 18) {
             throw new BadRequestException("El cliente debe ser mayor de 18 años.");
         }
@@ -63,7 +68,13 @@ public class ClienteService {
 
         Cliente savedCliente = clienteRepository.save(cliente);
         
-        Cuenta cuenta = Cuenta.builder().cliente(savedCliente).saldo(0.0).activa(true).build();
+        String pinFinal = (pinAutorizacion != null && !pinAutorizacion.isBlank()) ? pinAutorizacion.trim() : "1234";
+        Cuenta cuenta = Cuenta.builder()
+                .cliente(savedCliente)
+                .saldo(0.0)
+                .activa(true)
+                .pinAutorizacion(pinFinal)
+                .build();
         cuenta = cuentaRepository.save(cuenta);
         savedCliente.getCuentas().add(cuenta);
         
@@ -196,7 +207,7 @@ public class ClienteService {
 
     @Transactional
     public com.gestopago.microusuarios.dto.ClienteResponse crearClienteDTO(com.gestopago.microusuarios.dto.ClienteRegistroRequest request) {
-        Cliente cliente = crearCliente(request.getCliente(), request.getPassword());
+        Cliente cliente = crearCliente(request.getCliente(), request.getPassword(), request.getPinAutorizacion());
         return mapToResponse(cliente);
     }
 
@@ -261,6 +272,7 @@ public class ClienteService {
                         .numeroCuenta(c.getNumeroCuenta())
                         .saldo(c.getSaldo())
                         .activa(c.getActiva())
+                        .pinAutorizacion(c.getPinAutorizacion())
                         .build())
                 .collect(java.util.stream.Collectors.toList());
 
