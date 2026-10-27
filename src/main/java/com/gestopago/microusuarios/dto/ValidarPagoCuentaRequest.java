@@ -3,6 +3,7 @@ package com.gestopago.microusuarios.dto;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -35,17 +36,22 @@ public class ValidarPagoCuentaRequest {
     @JsonAlias({"monto", "montoPago"})
     private Double monto;
 
+    @Size(max = 100, message = "El teléfono o referencia no puede exceder 100 caracteres")
     @JsonAlias({"telefonoReferencia", "telefonoRef", "telefono_ref"})
     private String telefonoReferencia;
 
+    @Size(max = 100, message = "El teléfono no puede exceder 100 caracteres")
     private String telefono;
 
+    @Size(max = 100, message = "La referencia no puede exceder 100 caracteres")
     private String referencia;
 
     @NotNull(message = "El idServicio es obligatorio")
+    @Positive(message = "El idServicio debe ser mayor a 0")
     private Integer idServicio;
 
     @NotNull(message = "El idProducto es obligatorio")
+    @Positive(message = "El idProducto debe ser mayor a 0")
     private Integer idProducto;
 
     @Builder.Default
@@ -56,6 +62,7 @@ public class ValidarPagoCuentaRequest {
 
     private String horaLocal;
 
+    @Size(max = 36, message = "El upc no puede exceder 36 caracteres")
     private String upc;
 
     /**

@@ -1,5 +1,6 @@
 package com.gestopago.microusuarios.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
@@ -22,9 +23,14 @@ public class Cuenta {
     @Builder.Default
     private Boolean activa = true;
     
+    @JsonIgnore
+    @ToString.Exclude
     @Builder.Default
     @Column(name = "pin_autorizacion")
     private String pinAutorizacion = "1234";
+
+    @Version
+    private Long version;
     
     @ManyToOne
     @JoinColumn(name = "cliente_id")
