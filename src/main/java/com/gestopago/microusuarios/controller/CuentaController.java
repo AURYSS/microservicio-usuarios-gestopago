@@ -73,6 +73,14 @@ public class CuentaController {
         return ResponseEntity.ok(ApiResponse.exito("Pago de servicio procesado exitosamente", resultado));
     }
 
+    @PostMapping("/conciliar-pago")
+    @Operation(summary = "Conciliar una operación en estado incierto (EN_PROCESO / timeout) contra el proveedor y ajustar el saldo si no se aplicó")
+    public ResponseEntity<ApiResponse<PagoServicioCuentaResponse>> conciliarPago(
+            @Valid @RequestBody ValidarPagoCuentaRequest request) {
+        PagoServicioCuentaResponse resultado = cuentaService.conciliarPagoServicio(request);
+        return ResponseEntity.ok(ApiResponse.exito("Conciliación de pago procesada exitosamente", resultado));
+    }
+
     @PostMapping("/pagar")
     public ResponseEntity<ApiResponse<Map<String, Object>>> pagar(@Valid @RequestBody TransaccionRequest request) {
         Map<String, Object> resultado;

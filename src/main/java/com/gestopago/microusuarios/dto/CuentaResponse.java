@@ -1,5 +1,6 @@
 package com.gestopago.microusuarios.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import java.util.UUID;
 
@@ -12,5 +13,7 @@ public class CuentaResponse {
     private UUID numeroCuenta;
     private Double saldo;
     private Boolean activa;
+
+    @JsonIgnore
     private String pinAutorizacion;
 }
