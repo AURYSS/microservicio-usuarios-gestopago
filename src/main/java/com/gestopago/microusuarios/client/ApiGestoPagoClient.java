@@ -6,9 +6,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
+import java.time.Duration;
 import java.util.Map;
 
 /**
@@ -23,18 +25,28 @@ public class ApiGestoPagoClient {
 
     public ApiGestoPagoClient(String baseUrl) {
         this.baseUrl = baseUrl;
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(Duration.ofSeconds(5));
+        factory.setReadTimeout(Duration.ofSeconds(15));
         this.restClient = RestClient.builder()
                 .baseUrl(baseUrl)
+                .requestFactory(factory)
                 .build();
     }
 
     @Autowired
     public ApiGestoPagoClient(
             @Value("${api.gestopago.url:http://localhost:8080}") String baseUrl,
+            @Value("${api.gestopago.connect-timeout-ms:5000}") int connectTimeoutMs,
+            @Value("${api.gestopago.read-timeout-ms:15000}") int readTimeoutMs,
             RestClient.Builder restClientBuilder) {
         this.baseUrl = baseUrl;
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(Duration.ofMillis(connectTimeoutMs));
+        factory.setReadTimeout(Duration.ofMillis(readTimeoutMs));
         this.restClient = restClientBuilder
                 .baseUrl(baseUrl)
+                .requestFactory(factory)
                 .build();
     }
 
@@ -47,6 +59,21 @@ public class ApiGestoPagoClient {
                 baseUrl, request.getIdServicio(), request.getIdProducto(), request.getUpc());
         return restClient.post()
                 .uri("/pagos/pagar-servicio")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .body(request)
+                .retrieve()
+                .body(PagarServicioGestoPagoResponse.class);
+    }
+
+    /**
+     * Concilia una transacción en estado incierto (EN_PROCESO / timeout) contra POST /pagos/confirmar-servicio.
+     */
+    public PagarServicioGestoPagoResponse confirmarServicio(PagarServicioGestoPagoRequest request) {
+        log.info("Conciliando transaccion en api-gesto-pago [{}/pagos/confirmar-servicio] para upc={}",
+                baseUrl, request.getUpc());
+        return restClient.post()
+                .uri("/pagos/confirmar-servicio")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .body(request)
