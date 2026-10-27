@@ -29,8 +29,8 @@ public class Cuenta {
     @Column(name = "pin_autorizacion")
     private String pinAutorizacion = "1234";
 
-    @Version
-    private Long version;
+    @Builder.Default
+    private Long version = 0L;
     
     @ManyToOne
     @JoinColumn(name = "cliente_id")
@@ -48,5 +48,19 @@ public class Cuenta {
         if (pinAutorizacion == null || pinAutorizacion.isBlank()) {
             pinAutorizacion = "1234";
         }
+        if (version == null) {
+            version = 0L;
+        }
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        if (saldo == null) {
+            saldo = 0.0;
+        }
+        if (pinAutorizacion == null || pinAutorizacion.isBlank()) {
+            pinAutorizacion = "1234";
+        }
+        version = (version == null) ? 1L : version + 1L;
     }
 }
