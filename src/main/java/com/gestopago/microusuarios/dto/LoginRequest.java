@@ -10,4 +10,14 @@ public class LoginRequest {
 
     @NotBlank(message = "La contraseña es obligatoria")
     private String password;
+
+    /**
+     * Origen de la solicitud: "MOVIL" o "WEB" (default "MOVIL").
+     */
+    private String dispositivo;
+
+    /**
+     * Si es true, finaliza cualquier sesión previa activa en otro dispositivo.
+     */
+    private Boolean forzarCierre;
 }

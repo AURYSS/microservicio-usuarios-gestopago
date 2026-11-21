@@ -55,4 +55,10 @@ public class UsuarioController {
         UsuarioResponse response = usuarioService.obtenerMiPerfil(authentication.getName());
         return ResponseEntity.ok(ApiResponse.exito("Perfil recuperado exitosamente", response));
     }
+
+    @GetMapping("/por-correo")
+    public ResponseEntity<ApiResponse<UsuarioResponse>> obtenerPorCorreo(@RequestParam String correo) {
+        UsuarioResponse response = usuarioService.obtenerMiPerfil(correo);
+        return ResponseEntity.ok(ApiResponse.exito("Usuario encontrado", response));
+    }
 }

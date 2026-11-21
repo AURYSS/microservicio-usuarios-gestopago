@@ -36,4 +36,30 @@ public class Usuario {
     @JoinColumn(name = "cliente_id")
     @JsonIgnoreProperties({"usuario", "cuentas", "domicilio"})
     private Cliente cliente;
+
+    // --- Control de Sesión Única y 2FA ---
+    @Builder.Default
+    @Column(name = "sesion_activa")
+    private Boolean sesionActiva = false;
+
+    @Column(name = "dispositivo_activo")
+    private String dispositivoActivo;
+
+    @Column(name = "session_id_activo")
+    private String sessionIdActivo;
+
+    @Column(name = "two_factor_codigo")
+    private String twoFactorCodigo;
+
+    @Column(name = "two_factor_expiracion")
+    private LocalDateTime twoFactorExpiracion;
+
+    @Column(name = "two_factor_temp_token")
+    private String twoFactorTempToken;
+
+    @Column(name = "two_factor_dispositivo")
+    private String twoFactorDispositivo;
+
+    @Column(name = "fecha_ultimo_acceso")
+    private LocalDateTime fechaUltimoAcceso;
 }
