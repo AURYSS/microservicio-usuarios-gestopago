@@ -512,7 +512,8 @@ public class CuentaService {
                 throw new CuentaInactivaException("Operacion denegada: La cuenta esta inactiva y no puede recibir recargas.");
             }
 
-            cuenta.setSaldo(redondearMoneda(cuenta.getSaldo() + monto));
+            double saldoActual = cuenta.getSaldo() != null ? cuenta.getSaldo() : 0.0;
+            cuenta.setSaldo(redondearMoneda(saldoActual + monto));
             cuentaRepository.save(cuenta);
             registrarMovimiento(numeroCuenta, String.format("Recarga de saldo por $%.2f", monto));
 
